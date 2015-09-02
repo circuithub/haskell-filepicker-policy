@@ -1,23 +1,35 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Network.Filepicker.Policy
   ( Policy(..)
   , Call(..)
   , expiryToPolicy
   , addCall
   , setHandle
+  , encodePolicyBS
+  , encodePolicyText
   ) where
 
-import           Data.Aeson.Types      (ToJSON)
-import qualified Data.Aeson.Types      as A
-import           Data.ByteString       (ByteString)
-import qualified Data.ByteString       as B
+import           Crypto.Hash                (Digest)
+import           Crypto.Hash.Algorithms     (SHA256)
+import           Crypto.MAC.HMAC            (hmac, hmacGetDigest)
+import qualified Data.Aeson.Encode          as A
+import           Data.Aeson.Types           (ToJSON)
+import qualified Data.Aeson.Types           as A
+import           Data.ByteArray             (convert)
+import           Data.ByteString            (ByteString)
+import qualified Data.ByteString            as B
+import qualified Data.ByteString.Base64.URL as B64
+import qualified Data.ByteString.Lazy       as BL
 import           Data.Maybe
-import           Data.Set              (Set)
-import qualified Data.Set              as S
-import           Data.Text             (Text)
-import qualified Data.Text             as T
-import           Data.Time.Clock       (UTCTime)
-import           Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
+import           Data.Monoid
+import           Data.Set                   (Set)
+import qualified Data.Set                   as S
+import           Data.Text                  (Text)
+import qualified Data.Text                  as T
+import qualified Data.Text.Encoding         as T
+import           Data.Time.Clock            (UTCTime)
+import           Data.Time.Clock.POSIX      (utcTimeToPOSIXSeconds)
 import           GHC.Generics
 
 -- | https://www.filepicker.com/documentation/security/create-policy
@@ -94,5 +106,14 @@ aesonCallOptions = A.defaultOptions
 
 instance ToJSON Call where toJSON = A.genericToJSON aesonCallOptions
 
-encodePolicy :: Policy -> Text
-encodePolicy p = undefined
+
+-- | Given the secrect and the policy return the signature and policy encoded as URL parameters
+encodePolicyBS :: ByteString -> Policy -> ByteString
+encodePolicyBS secret p = "signatur=" <> sig <> "&policy=" <> jsonB64
+  where
+    jsonB64 = B64.encode . B.pack . BL.unpack . A.encode $ p
+    sig = convert (hmacGetDigest (hmac secret jsonB64) :: Digest SHA256)
+
+-- | Given the secrect and the policy return the signature and policy encoded as URL parameters
+encodePolicyText :: ByteString -> Policy -> Text
+encodePolicyText secret = T.decodeUtf8 . encodePolicyBS secret
