@@ -8,6 +8,7 @@ module Network.Filepicker.Policy
   , setHandle
   , encodePolicyBS
   , encodePolicyText
+  , encodePolicyS
   ) where
 
 import           Crypto.Hash                (Digest)
@@ -117,3 +118,7 @@ encodePolicyBS secret p = "signatur=" <> sig <> "&policy=" <> jsonB64
 -- | Given the secrect and the policy return the signature and policy encoded as URL parameters
 encodePolicyText :: ByteString -> Policy -> Text
 encodePolicyText secret = T.decodeUtf8 . encodePolicyBS secret
+
+-- | Given the secrect and the policy return the signature and policy encoded as URL parameters
+encodePolicyS :: ByteString -> Policy -> String
+encodePolicyS secret = T.unpack . encodePolicyText secret
