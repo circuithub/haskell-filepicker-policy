@@ -22,6 +22,8 @@ import           Data.ByteString            (ByteString)
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Base64.URL as B64
 import qualified Data.ByteString.Lazy       as BL
+import           Data.ByteString.UTF8       (fromString)
+import qualified Data.Char                  as C
 import           Data.Maybe
 import           Data.Monoid
 import           Data.Set                   (Set)
@@ -32,6 +34,8 @@ import qualified Data.Text.Encoding         as T
 import           Data.Time.Clock            (UTCTime)
 import           Data.Time.Clock.POSIX      (utcTimeToPOSIXSeconds)
 import           GHC.Generics
+
+import Debug.Trace
 
 -- | https://www.filepicker.com/documentation/security/create-policy
 
@@ -99,7 +103,7 @@ data Call
 aesonCallOptions :: A.Options
 aesonCallOptions = A.defaultOptions
   { A.fieldLabelModifier      = id
-  , A.constructorTagModifier  = id
+  , A.constructorTagModifier  = \t -> (C.toLower . head $ t) : tail t
   , A.allNullaryToStringTag   = True
   , A.omitNothingFields       = False
   , A.sumEncoding             = A.defaultTaggedObject
@@ -110,10 +114,10 @@ instance ToJSON Call where toJSON = A.genericToJSON aesonCallOptions
 
 -- | Given the secrect and the policy return the signature and policy encoded as URL parameters
 encodePolicyBS :: ByteString -> Policy -> ByteString
-encodePolicyBS secret p = "signatur=" <> sig <> "&policy=" <> jsonB64
+encodePolicyBS secret p = "signature=" <> sig <> "&policy=" <> jsonB64
   where
     jsonB64 = B64.encode . B.pack . BL.unpack . A.encode $ p
-    sig = convert (hmacGetDigest (hmac secret jsonB64) :: Digest SHA256)
+    sig = fromString . show $ (hmacGetDigest (hmac secret jsonB64) :: Digest SHA256)
 
 -- | Given the secrect and the policy return the signature and policy encoded as URL parameters
 encodePolicyText :: ByteString -> Policy -> Text
