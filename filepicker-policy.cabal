@@ -1,6 +1,6 @@
 name:                filepicker-policy
-version:             0.1.0
-synopsis:            API for creating filepicker.io policies
+version:             0.2.0
+synopsis:            API for creating filepicker.com policies
 -- description:
 license:             MIT
 license-file:        LICENSE

@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Network.Filepicker.Policy
   ( Policy(..)
@@ -9,6 +9,9 @@ module Network.Filepicker.Policy
   , encodePolicyBS
   , encodePolicyText
   , encodePolicyS
+  , encodePolicyParamBS
+  , encodePolicyParamText
+  , encodePolicyParamS
   ) where
 
 import           Crypto.Hash                (Digest)
@@ -21,6 +24,7 @@ import           Data.ByteArray             (convert)
 import           Data.ByteString            (ByteString)
 import qualified Data.ByteString            as B
 import qualified Data.ByteString.Base64.URL as B64
+import qualified Data.ByteString.Char8      as BC8
 import qualified Data.ByteString.Lazy       as BL
 import           Data.ByteString.UTF8       (fromString)
 import qualified Data.Char                  as C
@@ -35,7 +39,7 @@ import           Data.Time.Clock            (UTCTime)
 import           Data.Time.Clock.POSIX      (utcTimeToPOSIXSeconds)
 import           GHC.Generics
 
-import Debug.Trace
+import           Debug.Trace
 
 -- | https://www.filepicker.com/documentation/security/create-policy
 
@@ -111,18 +115,34 @@ aesonCallOptions = A.defaultOptions
 
 instance ToJSON Call where toJSON = A.genericToJSON aesonCallOptions
 
+-- Helper function for over pair
+both :: (a -> b) -> (a,a) -> (b,b)
+both f (x,y) = (f x, f y)
 
--- | Given the secrect and the policy return the signature and policy encoded as URL parameters
-encodePolicyBS :: ByteString -> Policy -> ByteString
-encodePolicyBS secret p = "signature=" <> sig <> "&policy=" <> jsonB64
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyBS :: ByteString -> Policy -> (ByteString, ByteString)
+encodePolicyBS secret p = (sig,jsonB64)
   where
     jsonB64 = B64.encode . B.pack . BL.unpack . A.encode $ p
     sig = fromString . show $ (hmacGetDigest (hmac secret jsonB64) :: Digest SHA256)
 
--- | Given the secrect and the policy return the signature and policy encoded as URL parameters
-encodePolicyText :: ByteString -> Policy -> Text
-encodePolicyText secret = T.decodeUtf8 . encodePolicyBS secret
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyText :: ByteString -> Policy -> (Text, Text)
+encodePolicyText secret = both T.decodeUtf8 . encodePolicyBS secret
 
--- | Given the secrect and the policy return the signature and policy encoded as URL parameters
-encodePolicyS :: ByteString -> Policy -> String
-encodePolicyS secret = T.unpack . encodePolicyText secret
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyS :: ByteString -> Policy -> (String, String)
+encodePolicyS secret = both BC8.unpack . encodePolicyBS secret
+
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyParamBS :: ByteString -> Policy -> ByteString
+encodePolicyParamBS secret = (\(sig,jsonB64) -> "signature=" <> sig <> "&policy=" <> jsonB64) . encodePolicyBS secret
+
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyParamText :: ByteString -> Policy -> Text
+encodePolicyParamText secret = T.decodeUtf8 . encodePolicyParamBS secret
+
+-- | Given the secret and the policy return the signature and policy encoded as URL parameters
+encodePolicyParamS :: ByteString -> Policy -> String
+encodePolicyParamS secret = BC8.unpack . encodePolicyParamBS secret
+
