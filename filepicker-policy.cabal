@@ -18,7 +18,7 @@ library
   other-extensions:    DeriveGeneric
   hs-source-dirs:      .
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 4.8
+  build-depends:       base >= 4.7 && < 4.9
                ,       cryptonite >= 0.5
                ,       base64-bytestring >= 1.0.0.1
                ,       aeson >= 0.7.0.6
@@ -35,7 +35,7 @@ test-suite test
   hs-source-dirs:      tests
   ghc-options:         -Wall
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 4.8
+  build-depends:       base >= 4.7 && < 4.9
                ,       filepicker-policy
                ,       hspec >= 1.12
                ,       HUnit >= 1.2.5.2
