@@ -1,5 +1,5 @@
 name:                filepicker-policy
-version:             0.2.2
+version:             0.2.3
 synopsis:            API for creating filepicker.com policies
 -- description:
 license:             MIT
@@ -13,7 +13,9 @@ build-type:          Simple
 cabal-version:       >= 1.10
 
 library
-  exposed-modules:     Network.Filepicker.Policy
+  exposed-modules:     Network.Filepicker.Handle
+                       Network.Filepicker.Policy
+                       Network.Filepicker.URL
   -- other-modules:
   other-extensions:    DeriveGeneric
   hs-source-dirs:      .

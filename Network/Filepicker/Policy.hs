@@ -38,6 +38,7 @@ import qualified Data.Text.Encoding         as T
 import           Data.Time.Clock            (UTCTime)
 import           Data.Time.Clock.POSIX      (utcTimeToPOSIXSeconds)
 import           GHC.Generics
+import           Network.Filepicker.Handle
 
 import           Debug.Trace
 
@@ -46,7 +47,7 @@ import           Debug.Trace
 data Policy = Policy
   { expiry    :: Int                -- ^ Seconds since the Epoch (1970).
   , call      :: Maybe (Set Call)   -- ^ Allowed operations
-  , handle    :: Maybe (Text)       -- ^ A Filepicker file URL like https://www.filepicker.io/api/file/KW9EJhYtS6y48Whm2S6D has a handle of KW9EJhYtS6y48Whm2S6D
+  , handle    :: Maybe FilepickerHandle       -- ^ A Filepicker file URL like https://www.filepicker.io/api/file/KW9EJhYtS6y48Whm2S6D has a handle of KW9EJhYtS6y48Whm2S6D
   , maxSize   :: Maybe Int          -- ^ The maximum size that can be stored into your s3. This only applies to the store command. Default to no limit.
   , minSize   :: Maybe Int          -- ^ The minimum size that can be stored into your s3. This only applies to the store command. Together with maxSize, this forms a range. The value of minSize should be smaller then maxSize. Default to 0.
   , path      :: Maybe Text         -- ^ For policies that store files, a perl-like regular expression that must match the path that the files will be stored under. Defaults to allowing any path ('.*').
@@ -62,7 +63,7 @@ addCall :: Call -> Policy -> Policy
 addCall c p = p {call = Just . maybe (S.singleton c) (S.insert c) . call $ p}
 
 -- | Set the handle of the policy
-setHandle :: Text -> Policy -> Policy
+setHandle :: FilepickerHandle -> Policy -> Policy
 setHandle h p = p {handle = Just h}
 
 -- | Set the maxSize of the policy
