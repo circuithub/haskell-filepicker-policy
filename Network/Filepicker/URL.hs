@@ -6,8 +6,11 @@ module Network.Filepicker.URL
     -- Exports
   , FilepickerUrl (unFilepickerUrl)
   , FilepickerSignedUrl (unFilepickerSignedUrl)
+  , ConversionOption
   , filepickerUrl
   , filepickerSignedUrl
+  , filepickerConvert
+  , filepickerSignedConvert
   , handleFromUrlBS
   , handleFromUrlText
   , handleFromUrlS
@@ -31,14 +34,48 @@ instance ToJSON FilepickerUrl where
 instance ToJSON FilepickerSignedUrl where
   toJSON = toJSON . TE.decodeUtf8 . unFilepickerSignedUrl
 
+-- TODO: Improve support
+data ConversionOption = Width Word
+                      | Height Word
+                      -- Fit
+                      -- Crop
+                      -- Format
+                      -- Filter
+                      -- Quality
+                      -- Rotate
+                      -- Watermark
+                      -- WatermarkSize
+                      -- WatermarkPosition
+
 filepickerRoot :: ByteString
 filepickerRoot = "https://www.filepicker.io/api/file/"
 
 filepickerUrl :: FilepickerHandle -> FilepickerUrl
-filepickerUrl h = FilepickerUrl (filepickerRoot <> unFilepickerHandle h)
+filepickerUrl handle = FilepickerUrl (filepickerRoot <> unFilepickerHandle handle)
 
 filepickerSignedUrl :: ByteString -> Policy -> FilepickerHandle -> FilepickerSignedUrl
-filepickerSignedUrl secret policy h = FilepickerSignedUrl ((unFilepickerUrl . filepickerUrl) h <> "?" <> encodePolicyParamBS secret policy)
+filepickerSignedUrl secret policy handle =
+  FilepickerSignedUrl
+  $ unFilepickerUrl (filepickerUrl handle)
+    <> "?"
+    <> encodePolicyParamBS secret policy
+
+filepickerConvert :: FilepickerHandle -> [ConversionOption] -> FilepickerUrl
+filepickerConvert handle options =
+  FilepickerUrl
+  $ unFilepickerUrl (filepickerUrl handle)
+    <> "/convert?"
+    <>  BC8.intercalate "&" (map encodeOption options)
+  where
+    encodeOption (Width w) = "w=" <> (BC8.pack . show) w
+    encodeOption (Height h) = "h=" <> (BC8.pack . show) h
+
+filepickerSignedConvert :: ByteString -> Policy -> FilepickerHandle -> [ConversionOption] -> FilepickerSignedUrl
+filepickerSignedConvert secret policy handle options =
+  FilepickerSignedUrl
+  $ unFilepickerUrl (filepickerConvert handle options)
+    <> (if null options then "?" else "&")
+    <> encodePolicyParamBS secret policy
 
 handleFromUrlBS :: ByteString -> Maybe FilepickerHandle
 handleFromUrlBS url = if filepickerRoot `B.isPrefixOf` url then (Just . FilepickerHandle . BC8.takeWhile (/= '?') . B.drop (B.length filepickerRoot)) url else Nothing
