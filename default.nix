@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "filepicker-policy";
-  version = "0.2.5";
+  version = "0.2.6";
   src = ./.;
   buildDepends = [
     aeson base base64-bytestring bytestring containers cryptonite

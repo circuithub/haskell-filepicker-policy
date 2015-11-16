@@ -60,8 +60,8 @@ filepickerSignedUrl secret policy handle =
     <> "?"
     <> encodePolicyParamBS secret policy
 
-filepickerConvert :: FilepickerHandle -> [ConversionOption] -> FilepickerUrl
-filepickerConvert handle options =
+filepickerConvert :: [ConversionOption] -> FilepickerHandle -> FilepickerUrl
+filepickerConvert options handle =
   FilepickerUrl
   $ unFilepickerUrl (filepickerUrl handle)
     <> "/convert?"
@@ -70,10 +70,10 @@ filepickerConvert handle options =
     encodeOption (Width w) = "w=" <> (BC8.pack . show) w
     encodeOption (Height h) = "h=" <> (BC8.pack . show) h
 
-filepickerSignedConvert :: ByteString -> Policy -> FilepickerHandle -> [ConversionOption] -> FilepickerSignedUrl
-filepickerSignedConvert secret policy handle options =
+filepickerSignedConvert :: ByteString -> Policy -> [ConversionOption] -> FilepickerHandle -> FilepickerSignedUrl
+filepickerSignedConvert secret policy options handle =
   FilepickerSignedUrl
-  $ unFilepickerUrl (filepickerConvert handle options)
+  $ unFilepickerUrl (filepickerConvert options handle)
     <> (if null options then "?" else "&")
     <> encodePolicyParamBS secret policy
 
