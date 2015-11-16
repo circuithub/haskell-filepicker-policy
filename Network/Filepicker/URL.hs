@@ -38,7 +38,7 @@ filepickerUrl :: FilepickerHandle -> FilepickerUrl
 filepickerUrl h = FilepickerUrl (filepickerRoot <> unFilepickerHandle h)
 
 filepickerSignedUrl :: ByteString -> Policy -> FilepickerHandle -> FilepickerSignedUrl
-filepickerSignedUrl secret policy h = FilepickerSignedUrl ((unFilepickerUrl . filepickerUrl) h <> encodePolicyParamBS secret policy)
+filepickerSignedUrl secret policy h = FilepickerSignedUrl ((unFilepickerUrl . filepickerUrl) h <> "?" <> encodePolicyParamBS secret policy)
 
 handleFromUrlBS :: ByteString -> Maybe FilepickerHandle
 handleFromUrlBS url = if filepickerRoot `B.isPrefixOf` url then (Just . FilepickerHandle . BC8.takeWhile (/= '?') . B.drop (B.length filepickerRoot)) url else Nothing
