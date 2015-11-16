@@ -6,7 +6,7 @@ module Network.Filepicker.URL
     -- Exports
   , FilepickerUrl (unFilepickerUrl)
   , FilepickerSignedUrl (unFilepickerSignedUrl)
-  , ConversionOption
+  , ConversionOption (..)
   , filepickerUrl
   , filepickerSignedUrl
   , filepickerConvert
