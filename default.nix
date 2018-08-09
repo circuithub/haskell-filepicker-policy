@@ -5,7 +5,7 @@
 mkDerivation {
   pname = "filepicker-policy";
   version = "0.2.6";
-  src = ./.;
+  src = import ../../nix/cabal-sdist.nix ./.;
   buildDepends = [
     aeson base base64-bytestring bytestring containers cryptonite
     memory text time utf8-string
