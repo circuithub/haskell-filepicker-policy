@@ -17,7 +17,7 @@ module Network.Filepicker.Policy
 import           Crypto.Hash                (Digest)
 import           Crypto.Hash.Algorithms     (SHA256)
 import           Crypto.MAC.HMAC            (hmac, hmacGetDigest)
-import qualified Data.Aeson.Encode          as A
+import qualified Data.Aeson                 as A
 import           Data.Aeson.Types           (ToJSON)
 import qualified Data.Aeson.Types           as A
 import           Data.ByteArray             (convert)
